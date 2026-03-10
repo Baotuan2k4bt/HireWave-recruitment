@@ -1,0 +1,8 @@
+{
+  "bias": 0.1,
+  "skillRatio": 0.35,
+  "skillCosine": 0.2,
+  "expRatio": 0.2,
+  "titleSimilarity": 0.15,
+  "keywordDensity": 0.1
+}
