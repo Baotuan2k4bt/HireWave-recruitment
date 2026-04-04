@@ -1,12 +1,22 @@
-FROM eclipse-temurin:17-jdk
+FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /app
 
-COPY . .
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
+COPY src src
 
 RUN chmod +x gradlew
 RUN ./gradlew build -x test
 
-EXPOSE 8080
+FROM eclipse-temurin:21-jre
 
-CMD ["java", "-jar", "build/libs/*.jar"]
+WORKDIR /app
+
+COPY --from=build /app/build/libs/*.jar app.jar
+
+EXPOSE 10000
+
+ENTRYPOINT ["java", "-Dserver.port=10000", "-jar", "app.jar"]
