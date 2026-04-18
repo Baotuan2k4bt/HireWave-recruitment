@@ -47,6 +47,7 @@ dependencies {
 
     /* ================= DATABASE ================= */
     implementation 'com.mysql:mysql-connector-j'
+    implementation 'org.postgresql:postgresql'
 
     /* ================= AWS S3 ================= */
     implementation 'software.amazon.awssdk:s3'
