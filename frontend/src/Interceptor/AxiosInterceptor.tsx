@@ -3,52 +3,59 @@ import { removeUser } from "../Slices/UserSlice";
 import { removeJwt } from "../Slices/JwtSlice";
 
 const axiosInstance = axios.create({
-    baseURL: 'https://hirewave-recruitment.onrender.com'
-    // baseURL: 'https://hiringwire-production.up.railway.app'
+    baseURL: "https://hirewave-recruitment.onrender.com",
 });
 
 axiosInstance.interceptors.request.use(
     (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem("token");
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
-)
+    (error) => Promise.reject(error)
+);
+
+let responseInterceptorAdded = false;
 
 export const setupResponseInterceptor = (navigate: any, dispatch: any) => {
+    if (responseInterceptorAdded) return;
+    responseInterceptorAdded = true;
+
     axiosInstance.interceptors.response.use(
-        (response) => {
-            return response;
-        },
+        (response) => response,
         (error) => {
             if (error.response?.status === 401) {
+                localStorage.removeItem("token");
                 dispatch(removeUser());
                 dispatch(removeJwt());
-                navigate('/login');
+                navigate("/login");
             }
-            // Normalize error structure to ensure response.data always exists
+
             if (!error.response) {
                 error.response = {
                     data: {
-                        errorMessage: error.message || 'Network error occurred. Please check your connection.'
+                        errorMessage:
+                            error.message ||
+                            "Network error occurred. Please check your connection.",
                     },
-                    status: 0
+                    status: 0,
                 };
-            } else if (!error.response.data) {
+            } else if (typeof error.response.data === 'string') {
                 error.response.data = {
-                    errorMessage: error.message || 'An error occurred'
+                    errorMessage: error.response.data,
                 };
             } else if (!error.response.data.errorMessage) {
-                error.response.data.errorMessage = error.response.data.message || error.message || 'An error occurred';
+                error.response.data.errorMessage =
+                    error.response.data.message ||
+                    error.message ||
+                    "An error occurred";
             }
+
             return Promise.reject(error);
         }
-    )
-}
+    );
+};
 
 export default axiosInstance;

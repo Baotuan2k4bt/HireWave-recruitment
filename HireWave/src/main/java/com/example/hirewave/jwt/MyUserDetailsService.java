@@ -32,6 +32,10 @@ public class MyUserDetailsService implements UserDetailsService {
 			throw new LockedException("Account is blocked");
 		}
 
+		if (user.getAccountStatus() == AccountStatus.INACTIVE) {
+			throw new DisabledException("Account is inactive");
+		}
+
 		if (user.getAccountStatus() == AccountStatus.REJECTED) {
 			throw new DisabledException("Account has been rejected");
 		}

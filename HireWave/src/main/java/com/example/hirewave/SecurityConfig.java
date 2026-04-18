@@ -41,26 +41,24 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                // ❌ CSRF disable vì dùng JWT
                 .csrf(csrf -> csrf.disable())
-
-                // ✅ CORS
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // ✅ API mới của Spring Security 6.x
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                // Public auth & user
                                 "/auth/login",
                                 "/users/login",
                                 "/users/register",
                                 "/users/verifyOtp/**",
                                 "/users/sendOtp/**",
                                 "/users/changePass",
-                                // Public career & AI endpoints
                                 "/career/**",
                                 "/ai/**",
-                                // Swagger / OpenAPI endpoints
+
+                                "/jobs/getAll",
+                                "/jobs/getAll/paged",
+                                "/jobs/get/**",
+                                "/profiles/get/**",
+
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
@@ -71,14 +69,11 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
-                // UserDetails + EntryPoint
                 .userDetailsService(userDetailsService)
                 .exceptionHandling(ex ->
                         ex.authenticationEntryPoint(authenticationEntryPoint)
                 );
 
-        // ✅ JWT Filter
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

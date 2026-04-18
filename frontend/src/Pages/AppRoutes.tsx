@@ -52,7 +52,6 @@ const AppRoutes = () => {
       <div className="pt-16">
         <Routes>
         <Route path='/' element={<HomePage />} />
-        // In AppRoutes.tsx, add this route
         <Route
             path='/admin-dashboard'
             element={

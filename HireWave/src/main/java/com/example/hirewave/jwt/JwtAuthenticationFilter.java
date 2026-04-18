@@ -12,22 +12,45 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final List<String> PERMIT_ALL_PATHS = Arrays.asList(
+            "/auth/login", "/users/login", "/users/register",
+            "/users/verifyOtp/**", "/users/sendOtp/**", "/users/changePass",
+            "/career/**", "/ai/**",
+            "/jobs/getAll", "/jobs/getAll/paged", "/jobs/get/**",
+            "/profiles/get/**",
+            "/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**", "/v3/api-docs.yaml"
+    );
+
+    private final AntPathMatcher pathMatcher = new AntPathMatcher();
+
     @Autowired
     private JwtHelper jwtHelper;
-
 
     @Autowired
     private UserDetailsService userDetailsService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        String requestUri = request.getRequestURI();
+
+        // Skip authentication for permitAll paths
+        for (String path : PERMIT_ALL_PATHS) {
+            if (pathMatcher.match(path, requestUri)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+        }
 
 //        try {
 //            Thread.sleep(500);
