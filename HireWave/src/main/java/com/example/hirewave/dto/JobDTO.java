@@ -7,14 +7,15 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class JobDTO {
-
+public class JobDTO implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private Long id;
 	private String jobTitle;
 
@@ -23,7 +24,7 @@ public class JobDTO {
 	private String companyName;
 	private String companyLogo;
 
-	private List<ApplicantDTO> applicants;
+	private transient List<ApplicantDTO> applicants;
 	private String about;
 
 	// ✅ Flag to indicate if current user has applied to this job

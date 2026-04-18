@@ -48,7 +48,9 @@ public class UserServiceImpl implements UserService {
 		if (userRepository.findByEmail(userDTO.getEmail()).isPresent()) {
 			throw new HireWaveException("USER_FOUND");
 		}
-
+		if (!userDTO.getPassword().equals(userDTO.getConfirmPassword())) {
+			throw new RuntimeException("Confirm password does not match");
+		}
 		userDTO.setPassword(passwordEncoder.encode(userDTO.getPassword()));
 		userDTO.setProfileId(profileService.createProfile(userDTO));
 

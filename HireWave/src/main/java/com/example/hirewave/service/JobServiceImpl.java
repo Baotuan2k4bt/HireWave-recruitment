@@ -16,6 +16,9 @@ import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -60,7 +63,13 @@ public class JobServiceImpl implements JobService {
 	@Autowired
 	private IMatchingService  matchingService;
 
+	@Caching(evict = {
+			@CacheEvict(value = "jobs_list", allEntries = true),
+			@CacheEvict(value = "jobs_page", allEntries = true),
+
+	})
 	@Override
+	@Transactional
 	public JobDTO postJob(JobDTO jobDTO) throws HireWaveException {
 
 		// ======================
@@ -69,7 +78,7 @@ public class JobServiceImpl implements JobService {
 		if (jobDTO.getId() == null || jobDTO.getId() == 0) {
 
 			Job job = jobDTO.toEntity();
-			
+
 			// Set Company
 			if (jobDTO.getCompanyId() != null) {
 				Company company = companyRepository.findById(jobDTO.getCompanyId())
@@ -104,20 +113,20 @@ public class JobServiceImpl implements JobService {
 		existingJob.setDescription(jobDTO.getDescription());
 		existingJob.setPackageOffered(jobDTO.getPackageOffered());
 		existingJob.setLocation(jobDTO.getLocation());
-		
+
 		// Update Company if changed
 		if (jobDTO.getCompanyId() != null) {
 			Company company = companyRepository.findById(jobDTO.getCompanyId())
 					.orElseThrow(() -> new HireWaveException("COMPANY_NOT_FOUND"));
 			existingJob.setCompany(company);
 		}
-		
+
 		existingJob.setJobStatus(jobDTO.getJobStatus());
 
 		return IJobRepository.save(existingJob).toDTO();
 	}
 
-	@Override
+
 	@Transactional(readOnly = true)
 	public List<JobDTO> getAllJobs(Long userId) throws HireWaveException {
 		List<Job> jobs = IJobRepository.findByJobStatus(JobStatus.ACTIVE);
@@ -144,6 +153,8 @@ public class JobServiceImpl implements JobService {
 	@Override
 	@Transactional(readOnly = true)
 	public Page<JobDTO> getAllJobs(Pageable pageable, Long userId) throws HireWaveException {
+		System.out.println("CALL DB getAllJobs pageable");
+
 		Page<Job> jobsPage = IJobRepository.findAll(pageable);
 		if (jobsPage.isEmpty()) {
 			return Page.empty(pageable);
@@ -159,6 +170,7 @@ public class JobServiceImpl implements JobService {
 			}
 			return dto;
 		});
+
 	}
 
 	@Override
@@ -166,7 +178,7 @@ public class JobServiceImpl implements JobService {
 	public JobDTO getJob(Long id, Long userId, com.example.hirewave.Enum.AccountType requesterRole) throws HireWaveException {
 		// Nếu là EMPLOYER hoặc ADMIN thì dùng toDetailDTO để xem danh sách ứng viên
 		if (com.example.hirewave.Enum.AccountType.EMPLOYER.equals(requesterRole) ||
-			com.example.hirewave.Enum.AccountType.ADMIN.equals(requesterRole)) {
+				com.example.hirewave.Enum.AccountType.ADMIN.equals(requesterRole)) {
 
 			return IJobRepository.findByIdWithApplicants(id)
 					.map(job -> {
@@ -367,7 +379,11 @@ public class JobServiceImpl implements JobService {
 				.collect(Collectors.toList());
 	}
 
+	@Caching(evict = {
+			@CacheEvict(value = "jobs_list", allEntries = true),
+			@CacheEvict(value = "jobs_page", allEntries = true),
 
+	})
 	@Override
 	@Transactional
 	public void changeAppStatus(Application application) throws HireWaveException {
@@ -400,8 +416,13 @@ public class JobServiceImpl implements JobService {
 		// Send email asynchronously to avoid blocking transaction
 		sendStatusUpdateEmailAsync(targetApplicant.getEmail(), job, application.getApplicationStatus());
 	}
+	@Caching(evict = {
+			@CacheEvict(value = "jobs_list", allEntries = true),
+			@CacheEvict(value = "jobs_page", allEntries = true),
 
+	})
 	@Override
+	@Transactional
 	public void deleteJob(Long id) throws HireWaveException {
 		IJobRepository.deleteById(id);
 	}
@@ -411,12 +432,12 @@ public class JobServiceImpl implements JobService {
 	public List<JobDTO> getSavedJobs(Long profileId) throws HireWaveException {
 		com.example.hirewave.entity.Profile profile = profileRepository.findById(profileId)
 				.orElseThrow(() -> new HireWaveException("PROFILE_NOT_FOUND"));
-		
+
 		List<Long> savedJobIds = profile.getSavedJobs();
 		if (savedJobIds == null || savedJobIds.isEmpty()) {
 			return new ArrayList<>();
 		}
-		
+
 		return IJobRepository.findAllById(savedJobIds).stream()
 				.map(Job::toDTO)
 				.collect(Collectors.toList());
@@ -518,6 +539,11 @@ public class JobServiceImpl implements JobService {
 				.map(Job::toDTO)
 				.collect(Collectors.toList());
 	}
+	@Caching(evict = {
+			@CacheEvict(value = "jobs_list", allEntries = true),
+			@CacheEvict(value = "jobs_page", allEntries = true),
+
+	})
 	@Override
 	@Transactional
 	public void approveJob(Long id) throws HireWaveException {
@@ -534,7 +560,11 @@ public class JobServiceImpl implements JobService {
 		notification.setRoute("/posted-jobs/" + job.getId());
 		notificationService.sendNotification(notification);
 	}
+	@Caching(evict = {
+			@CacheEvict(value = "jobs_list", allEntries = true),
+			@CacheEvict(value = "jobs_page", allEntries = true),
 
+	})
 	@Override
 	@Transactional
 	public void rejectJob(Long id) throws HireWaveException {

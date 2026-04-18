@@ -34,6 +34,7 @@ public class UserDTO {
 	private Long profileId;
 	private AccountStatus accountStatus;
 	private LocalDateTime lastLoginDate;
+	private String confirmPassword; // thêm dòng này
 	public User toEntity() {
 		return new User(this.id, this.name, this.email, this.password, this.accountType, this.profileId, this.accountStatus, this.lastLoginDate);
 	}

@@ -39,6 +39,16 @@ public class User {
 
 	private LocalDateTime lastLoginDate;
 	public UserDTO toDTO() {
-		return new UserDTO(this.id, this.name, this.email, this.password, this.accountType, this.profileId, this.accountStatus, this.lastLoginDate);
+		return new UserDTO(
+				this.id,
+				this.name,
+				this.email,
+				this.password,
+				this.accountType,
+				this.profileId,
+				this.accountStatus,
+				this.lastLoginDate,
+				null
+		);
 	}
 }

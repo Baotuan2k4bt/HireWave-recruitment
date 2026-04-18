@@ -3,7 +3,7 @@ import { removeUser } from "../Slices/UserSlice";
 import { removeJwt } from "../Slices/JwtSlice";
 
 const axiosInstance = axios.create({
-    baseURL: "https://hirewave-recruitment.onrender.com",
+    baseURL: process.env.REACT_APP_API_BASE_URL || "http://localhost:8080",
 });
 
 axiosInstance.interceptors.request.use(
